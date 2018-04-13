@@ -10,8 +10,65 @@
 <body>
   <div id='app'></div>
 
+  <script>
+  // fake asynchronyous nature of ajax requests
+    window.API = {
+      fetchFriends() {
+        return new Promise((res, rej) => {
+          const friends = [
+            {
+              name: 'hannah',
+              active: true,
+            },
+            {
+              name: 'melanie',
+              active: true,
+            },
+            {
+              name: 'amanda',
+              active: true,
+            },
+            {
+              name: 'lucy',
+              active: false,
+            },
+          ]
+          setTimeout(() => res(friends), 2000)
+        })
+      }
+    }
+  </script>
+
   <script type='text/babel'>
-  // there's no state living in here.
+  class Loading extends React.Component {
+        constructor(props) {
+          super(props);
+
+          this.state = {
+            text: 'Loading'
+          };
+        }
+        componentDidMount() {
+          const stopper = this.state.text + '...';
+
+          this.interval = window.setInterval(() => {
+            this.state.text === stopper
+              ? this.setState(() => ({ text: 'Loading' }))
+              : this.setState((prevState) => ({ text: prevState.text + '.' }))
+          }, 300)
+        }
+        // We do this so the interval stops running every 300ms
+        componentWillUnmount() {
+          window.clearInterval(this.interval);
+        }
+        render() {
+          return (
+            <p>
+              {this.state.text}
+            </p>
+          )
+        }
+      }  // there's no state living in here.
     function CoolFriendList(props) {
       return (
         <div>
@@ -57,25 +114,9 @@
         super(props)
         // our state lives in the constructor. We moved it out of the render method.
         this.state = {
-          friends: [
-            {
-              name: 'hannah',
-              active: true,
-            },
-            {
-              name: 'melanie',
-              active: true,
-            },
-            {
-              name: 'amanda',
-              active: true,
-            },
-            {
-              name: 'lucy',
-              active: false,
-            },
-          ],
+          friends: [],
           input: '',
+          loading: true,
         }
 
         this.handleRemoveFriend = this.handleRemoveFriend.bind(this)
@@ -83,6 +124,28 @@
         this.handleAddFriend = this.handleAddFriend.bind(this)
         this.handleRemoveAll = this.handleRemoveAll.bind(this)
         this.toggleFriend = this.toggleFriend.bind(this)
+
+        console.log('------constructor-----')
+      }
+
+      componentDidMount() {
+        console.log('--componentDidMount')
+
+        API.fetchFriends()
+          .then((friends) => {
+            this.setState({
+              friends,
+              loading: false,
+            })
+          })
+      }
+
+      componentDidUpdate() {
+        console.log('_____componentDidUpdate')
+
+      }
+      componentWillUnmount() {
+        console.log('_____componentwillmount')
       }
       // How do we modify state that is living on the component instance?
       // We use this.setState()!
@@ -137,6 +200,11 @@
       }
 
       render() {
+        console.log('--render is called--')
+        console.log()
+        if (this.state.loading === true) {
+          return <Loading />
+        }
         return (
           <div>
             <input
@@ -162,7 +230,6 @@
             />
           </div>
         )
-
       }
     }
     ReactDOM.render(
