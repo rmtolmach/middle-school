@@ -1,0 +1,174 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>First React App</title>
+  <script crossorigin src="https://unpkg.com/react@16/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
+  <script src='https://unpkg.com/babel-standalone@6/babel.min.js'></script>
+</head>
+<body>
+  <div id='app'></div>
+
+  <script type='text/babel'>
+  // there's no state living in here.
+    function CoolFriendList(props) {
+      return (
+        <div>
+          <h2>
+          FRAANSSSSSS
+          </h2>
+          <ul>
+          {props.yesList.map(friend => (
+            <li key={friend.name}>
+            <span>{friend.name}</span>
+            <button onClick={() => props.onRemoveFriend(friend.name)}>Remove</button>
+            <button onClick={() => props.onToggleFriend(friend.name)}>DEmote</button>
+            </li>
+          ))}
+          </ul>
+        </div>
+      )
+    }
+
+    function NotCoolFriendList(props) {
+      return(
+        <div>
+          <h3>
+          Nope
+          </h3>
+          <ul>
+          {props.noList.map(friend => (
+            <li key={friend.name}>
+            <span>{friend.name}</span>
+            <button onClick={() => props.onRemoveFriend(friend.name)}>Remove</button>
+            <button onClick={() => props.onToggleFriend(friend.name)}>Promote</button>
+            </li>
+          ))}
+          </ul>
+        </div>
+      )
+    }
+
+// if we need state, use a class. if not, use a function.
+    class App extends React.Component {
+      // This constructor is straight up javascript. always use super w/ a constructor.
+      constructor(props) {
+        super(props)
+        // our state lives in the constructor. We moved it out of the render method.
+        this.state = {
+          friends: [
+            {
+              name: 'hannah',
+              active: true,
+            },
+            {
+              name: 'melanie',
+              active: true,
+            },
+            {
+              name: 'amanda',
+              active: true,
+            },
+            {
+              name: 'lucy',
+              active: false,
+            },
+          ],
+          input: '',
+        }
+
+        this.handleRemoveFriend = this.handleRemoveFriend.bind(this)
+        this.updateInput = this.updateInput.bind(this)
+        this.handleAddFriend = this.handleAddFriend.bind(this)
+        this.handleRemoveAll = this.handleRemoveAll.bind(this)
+        this.toggleFriend = this.toggleFriend.bind(this)
+      }
+      // How do we modify state that is living on the component instance?
+      // We use this.setState()!
+      handleAddFriend() {
+        this.setState((currentState) => {
+          return {
+            friends: currentState.friends.concat([{
+              name: currentState.input,
+              active: true,
+            }]),
+            input: '',
+          }
+        })
+      }
+
+      handleRemoveFriend(name) {
+        // we want to update the state. merge this function with the current state.
+        // can call currentState whatever we want, but it is a thing react gives us.
+        // handleRemoveFriend is being invoked in the button onClick.
+        // so we look to the left of the dot up there and It's as if `this` is
+        // referencing `props`. we don't want that. We want it to reference App. So we use a .bind
+        this.setState((currentState) => {
+          return {
+            friends: currentState.friends.filter(friend => friend.name !== name),
+          }
+        })
+      }
+      updateInput(e) {
+        const value = e.target.value
+        this.setState({
+          input: value
+        })
+      }
+      handleRemoveAll(friends) {
+        this.setState((currentState) => {
+          return {
+            friends: [],
+          }
+        })
+      }
+
+      toggleFriend(name) {
+        this.setState((currentState) => {
+          const friend = currentState.friends.find((friend) => friend.name === name)
+          return {
+            friends: currentState.friends.filter((friend) => friend.name !== name).concat([{
+              name,
+              active: !friend.active,
+            }])
+          }
+        })
+      }
+
+      render() {
+        return (
+          <div>
+            <input
+              type='text'
+              placeholder='new friend'
+              // this is a controlled component.
+              value={this.state.input}
+              // need to do this
+              onChange={this.updateInput}
+            />
+            <button onClick={this.handleAddFriend}>Add friend!</button>
+            <br />
+            <button onClick={this.handleRemoveAll}>I hate them all</button>
+            <CoolFriendList
+              yesList={this.state.friends.filter(friend => friend.active === true )}
+              onRemoveFriend={this.handleRemoveFriend}
+              onToggleFriend={this.toggleFriend}
+            />
+            <NotCoolFriendList
+              noList={this.state.friends.filter(friend => friend.active === false )}
+              onRemoveFriend={this.handleRemoveFriend}
+              onToggleFriend={this.toggleFriend}
+            />
+          </div>
+        )
+
+      }
+    }
+    ReactDOM.render(
+      <App />,
+      document.getElementById('app')
+    )
+  </script>
+</body>
+</html>
